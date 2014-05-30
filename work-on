@@ -1,0 +1,56 @@
+#!/bin/sh
+
+# Generalization of the `muxify` scripts that are often found in the
+# rally projects. Rather than copy/pasta the same script everywhere,
+# this can go in a general bin dir and work for any project
+
+# Use $1 as the directory or cwd if not set
+if [ -z "$1" ]
+then
+  DIR=.
+else
+  DIR=$1
+fi
+
+# Make sure we have a real clojure project
+if [ ! -d $DIR ]
+then
+  echo "$DIR: Not a directory." >&2
+  exit 1
+elif [ ! -f $DIR/project.clj ]
+then
+  echo "$DIR: Not a clojure project." >&2
+  exit 2
+fi
+
+# Absolutize the path
+export DIR=$(cd $DIR; pwd)
+
+# session name is the project repo name
+export SESSION_NAME=$(basename $DIR)
+
+if ! tmux has-session -t $SESSION_NAME
+then
+  tmux new-session -s $SESSION_NAME -d -n repl -c $DIR
+  tmux send-keys -t $SESSION_NAME "lein repl" C-m
+
+  tmux new-window -n editor -c $DIR
+
+  # Open project.clj in the user's editor if set
+  if [ ! -z "$EDITOR" ]
+  then
+    tmux send-keys -t $SESSION_NAME "$EDITOR project.clj" C-m
+  fi
+
+  tmux new-window -n test-runner -c $DIR
+  tmux new-window -n misc -t $SESSION_NAME
+
+  tmux select-window -t $SESSION_NAME:1
+
+  if [ -f $DIR/tmux.extra ]
+  then
+    source $DIR/tmux.extra
+  fi
+fi
+
+tmux attach-session -t $SESSION_NAME

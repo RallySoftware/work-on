@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# gonna need some "help" text for this one
+ssh pairing@$1 "work-on ~/projects/$2"
