@@ -1,4 +1,9 @@
 #!/bin/bash
 
+if [ -z "$PAIR_USER" ]
+then
+  PAIR_USER="pairing"
+fi
+
 # gonna need some "help" text for this one
-ssh pairing@$1 "work-on ~/projects/$2"
+ssh $PAIR_USER@$1 "work-on $2"
