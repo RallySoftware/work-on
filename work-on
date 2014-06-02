@@ -15,12 +15,12 @@ fi
 # Make sure we have a real clojure project
 if [ ! -d $DIR ]
 then
-  echo "$DIR: Not a directory." >&2
-  exit 1
-elif [ ! -f $DIR/project.clj ]
-then
-  echo "$DIR: Not a clojure project." >&2
-  exit 2
+  REPO_NAME=$(basename $DIR)
+  if ! git clone https://github.com/RallySoftware/$REPO_NAME
+  then
+    echo "Could not find the repo 'https://github.com/RallySoftware/$REPO_NAME'"
+    exit 1
+  fi
 fi
 
 # Absolutize the path
@@ -29,20 +29,28 @@ export DIR=$(cd $DIR; pwd)
 # session name is the project repo name
 export SESSION_NAME=$(basename $DIR)
 
+cd $DIR
+
+[ -f $DIR/project.clj ] && PROJECT="project.clj" || PROJECT=""
+
 if ! tmux has-session -t $SESSION_NAME
 then
-  tmux new-session -s $SESSION_NAME -d -n repl -c $DIR
-  tmux send-keys -t $SESSION_NAME "lein repl" C-m
+  tmux new-session -s $SESSION_NAME -d -n repl
 
-  tmux new-window -n editor -c $DIR
+  if [ ! -z "$PROJECT" ]
+  then
+    tmux send-keys -t $SESSION_NAME "lein repl" C-m
+  fi
+
+  tmux new-window -n editor
 
   # Open project.clj in the user's editor if set
   if [ ! -z "$EDITOR" ]
   then
-    tmux send-keys -t $SESSION_NAME "$EDITOR project.clj" C-m
+    tmux send-keys -t $SESSION_NAME "$EDITOR $PROJECT" C-m
   fi
 
-  tmux new-window -n test-runner -c $DIR
+  tmux new-window -n test-runner
   tmux new-window -n misc -t $SESSION_NAME
 
   tmux select-window -t $SESSION_NAME:1
