@@ -61,4 +61,7 @@ then
   fi
 fi
 
-tmux attach-session -t $SESSION_NAME
+if [ -z "$SKIP_ATTACH" ]
+then
+  tmux attach-session -t $SESSION_NAME
+fi
