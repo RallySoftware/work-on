@@ -12,13 +12,18 @@ else
   DIR=$1
 fi
 
+if [ -z "$REPO_PREFIX" ]
+then
+  REPO_PREFIX="https://github.com/RallySoftware"
+fi
+
 # Make sure we have a real clojure project
 if [ ! -d $DIR ]
 then
   REPO_NAME=$(basename $DIR)
-  if ! git clone https://github.com/RallySoftware/$REPO_NAME
+  if ! git clone $REPO_PREFIX/$REPO_NAME
   then
-    echo "Could not find the repo 'https://github.com/RallySoftware/$REPO_NAME'"
+    echo "Could not find the repo '$REPO_PREFIX/REPO_NAME'"
     exit 1
   fi
 fi
