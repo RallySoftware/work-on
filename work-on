@@ -25,7 +25,7 @@ session_name () {
 if [ ! -d $DIR ]
 then
   REPO_NAME=$(basename $DIR)
-  if ! git clone $REPO_PREFIX/$REPO_NAME
+  if ! git clone $REPO_PREFIX/$REPO_NAME $DIR
   then
     echo "Could not find the repo '$REPO_PREFIX/REPO_NAME'"
     exit 1
