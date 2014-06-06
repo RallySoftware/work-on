@@ -17,6 +17,10 @@ then
   REPO_PREFIX="https://github.com/RallySoftware"
 fi
 
+session_name () {
+  echo $1 | sed -E -e "s/[^a-zA-Z0-9_-]+/_/g"
+}
+
 # Make sure we have a real clojure project
 if [ ! -d $DIR ]
 then
@@ -32,7 +36,7 @@ fi
 export DIR=$(cd $DIR; pwd)
 
 # session name is the project repo name
-export SESSION_NAME=$(basename $DIR)
+export SESSION_NAME=$(session_name $(basename $DIR))
 
 cd $DIR
 
