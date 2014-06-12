@@ -9,7 +9,7 @@ if [ -z "$1" ]
 then
   DIR=.
 else
-  DIR=$1
+  DIR=~/projects/$1
 fi
 
 if [ -z "$REPO_PREFIX" ]
@@ -46,23 +46,23 @@ if ! tmux has-session -t $SESSION_NAME
 then
   tmux new-session -s $SESSION_NAME -d -n repl
 
-  if [ ! -z "$PROJECT" ]
-  then
-    tmux send-keys -t $SESSION_NAME "lein repl" C-m
-  fi
-
-  tmux new-window -n editor
-
   # Open project.clj in the user's editor if set
   if [ ! -z "$EDITOR" ]
   then
     tmux send-keys -t $SESSION_NAME "$EDITOR $PROJECT" C-m
   fi
 
+  tmux new-window -n editor
+
+  if [ ! -z "$PROJECT" ]
+  then
+    tmux send-keys -t $SESSION_NAME "lein repl" C-m
+  fi
+
   tmux new-window -n test-runner
   tmux new-window -n misc -t $SESSION_NAME
 
-  tmux select-window -t $SESSION_NAME:1
+  tmux select-window -t $SESSION_NAME:0
 
   if [ -f $DIR/tmux.extra ]
   then
