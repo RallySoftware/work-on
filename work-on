@@ -17,6 +17,13 @@ then
   REPO_PREFIX="https://github.com/RallySoftware"
 fi
 
+if [ -z "$REPO_HOME" ]
+then
+  REPO_HOME=~/projects
+else
+  SESSION_PREFIX=$REPO_HOME
+fi
+
 session_name () {
   echo $1 | sed -E -e "s/[^a-zA-Z0-9_-]+/_/g"
 }
@@ -24,11 +31,16 @@ session_name () {
 # Make sure we have a real clojure project
 if [ ! -d $DIR ]
 then
-  REPO_NAME=$(basename $DIR)
-  if ! git clone $REPO_PREFIX/$REPO_NAME $DIR
+  DIR=$REPO_HOME/$DIR
+
+  if [ ! -d $DIR ]
   then
-    echo "Could not find the repo '$REPO_PREFIX/REPO_NAME'"
-    exit 1
+    REPO_NAME=$(basename $DIR)
+    if ! git clone $REPO_PREFIX/$REPO_NAME $DIR
+    then
+      echo "Could not find the repo '$REPO_PREFIX/$REPO_NAME'"
+      exit 1
+    fi
   fi
 fi
 
@@ -36,11 +48,21 @@ fi
 export DIR=$(cd $DIR; pwd)
 
 # session name is the project repo name
-export SESSION_NAME=$(session_name $(basename $DIR))
+export SESSION_NAME="${SESSION_PREFIX}/$(session_name $(basename $DIR))"
 
 cd $DIR
 
-[ -f $DIR/project.clj ] && PROJECT="project.clj" || PROJECT=""
+if [ -f $DIR/project.clj ]
+then
+  PROJECT="project.clj"
+else
+  PROJECT=""
+fi
+
+if [ -z "$EDITOR" ]
+then
+  EDITOR=emacs
+fi
 
 if ! tmux has-session -t $SESSION_NAME
 then
@@ -53,11 +75,8 @@ then
 
   tmux new-window -n editor
 
-  # Open project.clj in the user's editor if set
-  if [ ! -z "$EDITOR" ]
-  then
-    tmux send-keys -t $SESSION_NAME "$EDITOR $PROJECT" C-m
-  fi
+  # if project doesn't exist, just open the editor
+  tmux send-keys -t $SESSION_NAME "$EDITOR $PROJECT" C-m
 
   tmux new-window -n test-runner
   tmux new-window -n misc -t $SESSION_NAME
